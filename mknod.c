@@ -1,5 +1,6 @@
 /* See LICENSE file for copyright and license details. */
 #include <sys/stat.h>
+#include <sys/sysmacros.h>
 #include <sys/types.h>
 
 #include <fcntl.h>

@@ -1,4 +1,5 @@
 /* See LICENSE file for copyright and license details. */
+#include <sys/sysmacros.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
