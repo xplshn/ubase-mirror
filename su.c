@@ -75,9 +75,6 @@ main(int argc, char *argv[])
 
 	shell = pw->pw_shell[0] == '\0' ? "/bin/sh" : pw->pw_shell;
 	if (lflag) {
-		newargv[0] = shell;
-		newargv[1] = "-l";
-		newargv[2] = NULL;
 		term = getenv("TERM");
 		clearenv();
 		setenv("HOME", pw->pw_dir, 1);
@@ -87,9 +84,10 @@ main(int argc, char *argv[])
 		setenv("TERM", term ? term : "linux", 1);
 		if (chdir(pw->pw_dir) < 0)
 			eprintf("chdir %s:", pw->pw_dir);
-	} else {
 		newargv[0] = shell;
-		newargv[1] = NULL;
+		newargv[1] = "-l";
+		newargv[2] = NULL;
+	} else {
 		if (pflag) {
 			shell = getenv("SHELL");
 		} else {
@@ -100,6 +98,8 @@ main(int argc, char *argv[])
 				setenv("LOGNAME", pw->pw_name, 1);
 			}
 		}
+		newargv[0] = shell;
+		newargv[1] = NULL;
 	}
 	if (strcmp(pw->pw_name, "root") == 0)
 		setenv("PATH", ENV_SUPATH, 1);
