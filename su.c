@@ -18,28 +18,6 @@ extern char **environ;
 static int lflag = 0;
 static int pflag = 0;
 
-static int
-dologin(struct passwd *pw)
-{
-	char *shell = pw->pw_shell[0] == '\0' ? "/bin/sh" : pw->pw_shell;
-	char *term = getenv("TERM");
-	clearenv();
-	setenv("HOME", pw->pw_dir, 1);
-	setenv("SHELL", shell, 1);
-	setenv("USER", pw->pw_name, 1);
-	setenv("LOGNAME", pw->pw_name, 1);
-	setenv("TERM", term ? term : "linux", 1);
-	if (strcmp(pw->pw_name, "root") == 0)
-		setenv("PATH", ENV_SUPATH, 1);
-	else
-		setenv("PATH", ENV_PATH, 1);
-	if (chdir(pw->pw_dir) < 0)
-		eprintf("chdir %s:", pw->pw_dir);
-	execlp(shell, shell, "-l", NULL);
-	weprintf("execlp %s:", shell);
-	return (errno == ENOENT) ? 127 : 126;
-}
-
 static void
 usage(void)
 {
@@ -50,9 +28,9 @@ int
 main(int argc, char *argv[])
 {
 	char *usr = "root", *pass;
-	char *shell;
+	char *shell, *term;
 	struct passwd *pw;
-	char *newargv[2];
+	char *newargv[3];
 	uid_t uid;
 
 	ARGBEGIN {
@@ -66,12 +44,9 @@ main(int argc, char *argv[])
 		usage();
 	} ARGEND;
 
-	if (argc < 1)
-		;
-	else if (argc == 1)
-		usr = argv[0];
-	else
+	if (argc != 1)
 		usage();
+	usr = argv[0];
 
 	errno = 0;
 	pw = getpwnam(usr);
@@ -98,13 +73,26 @@ main(int argc, char *argv[])
 	if (setuid(pw->pw_uid) < 0)
 		eprintf("setuid:");
 
+	shell = pw->pw_shell[0] == '\0' ? "/bin/sh" : pw->pw_shell;
 	if (lflag) {
-		return dologin(pw);
+		newargv[0] = shell;
+		newargv[1] = "-l";
+		newargv[2] = NULL;
+		term = getenv("TERM");
+		clearenv();
+		setenv("HOME", pw->pw_dir, 1);
+		setenv("SHELL", shell, 1);
+		setenv("USER", pw->pw_name, 1);
+		setenv("LOGNAME", pw->pw_name, 1);
+		setenv("TERM", term ? term : "linux", 1);
+		if (chdir(pw->pw_dir) < 0)
+			eprintf("chdir %s:", pw->pw_dir);
 	} else {
-		shell = pw->pw_shell[0] == '\0' ? "/bin/sh" : pw->pw_shell;
 		newargv[0] = shell;
 		newargv[1] = NULL;
-		if (!pflag) {
+		if (pflag) {
+			shell = getenv("SHELL");
+		} else {
 			setenv("HOME", pw->pw_dir, 1);
 			setenv("SHELL", shell, 1);
 			if (strcmp(pw->pw_name, "root") != 0) {
@@ -112,14 +100,12 @@ main(int argc, char *argv[])
 				setenv("LOGNAME", pw->pw_name, 1);
 			}
 		}
-		if (strcmp(pw->pw_name, "root") == 0)
-			setenv("PATH", ENV_SUPATH, 1);
-		else
-			setenv("PATH", ENV_PATH, 1);
-		execve(pflag ? getenv("SHELL") : shell,
-		       newargv, environ);
-		weprintf("execve %s:", shell);
-		return (errno == ENOENT) ? 127 : 126;
 	}
-	return 0;
+	if (strcmp(pw->pw_name, "root") == 0)
+		setenv("PATH", ENV_SUPATH, 1);
+	else
+		setenv("PATH", ENV_PATH, 1);
+	execve(shell, newargv, environ);
+	weprintf("execve %s:", shell);
+	return (errno == ENOENT) ? 127 : 126;
 }
