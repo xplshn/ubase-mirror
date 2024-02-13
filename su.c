@@ -28,7 +28,7 @@ int
 main(int argc, char *argv[])
 {
 	char *usr = "root", *pass;
-	char *shell, *term;
+	char *shell, *envshell, *term;
 	struct passwd *pw;
 	char *newargv[3];
 	uid_t uid;
@@ -89,7 +89,9 @@ main(int argc, char *argv[])
 		newargv[2] = NULL;
 	} else {
 		if (pflag) {
-			shell = getenv("SHELL");
+			envshell = getenv("SHELL");
+			if (envshell && envshell[0] != '\0')
+				shell = envshell;
 		} else {
 			setenv("HOME", pw->pw_dir, 1);
 			setenv("SHELL", shell, 1);
