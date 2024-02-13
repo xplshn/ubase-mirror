@@ -9,7 +9,6 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "config.h"
 #include "passwd.h"
 #include "util.h"
 
@@ -103,10 +102,6 @@ main(int argc, char *argv[])
 		newargv[0] = shell;
 		newargv[1] = NULL;
 	}
-	if (strcmp(pw->pw_name, "root") == 0)
-		setenv("PATH", ENV_SUPATH, 1);
-	else
-		setenv("PATH", ENV_PATH, 1);
 	execve(shell, newargv, environ);
 	weprintf("execve %s:", shell);
 	return (errno == ENOENT) ? 127 : 126;
