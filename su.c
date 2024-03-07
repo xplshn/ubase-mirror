@@ -26,7 +26,7 @@ usage(void)
 int
 main(int argc, char *argv[])
 {
-	char *usr = "root", *pass;
+	char *usr, *pass;
 	char *shell, *envshell, *term;
 	struct passwd *pw;
 	char *newargv[3];
@@ -43,9 +43,9 @@ main(int argc, char *argv[])
 		usage();
 	} ARGEND;
 
-	if (argc != 1)
+	if (argc > 1)
 		usage();
-	usr = argv[0];
+	usr = argc > 0 ? argv[0] : "root";
 
 	errno = 0;
 	pw = getpwnam(usr);
