@@ -2,7 +2,7 @@ name: Sync with git://git.suckless.org/ubase
 
 on:
   schedule:
-    - cron: '0 0 */3 * *'  # Run every 3 days at midnight
+    - cron: '0 0 */30 * *'  # Run every 3 days at midnight
   workflow_dispatch:  # Allow manual trigger
 
 jobs:
